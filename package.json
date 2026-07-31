@@ -1,0 +1,8 @@
+{
+  "name": "the-wisp",
+  "version": "0.1.0",
+  "description": "The wisp pointed at the whole estate as substrate — ~1000 repos as one field of folds, the moving frontier dancing across (one live edge, stored-nowhere), with the heat-sink and spiral/orbit diagnostics computed from real data. Proof-of-play gated.",
+  "type": "module",
+  "scripts": { "test": "node --test test/wisp.test.mjs", "gate": "node konomi/run-gate.mjs" },
+  "license": "MIT", "engines": { "node": ">=20" }
+}

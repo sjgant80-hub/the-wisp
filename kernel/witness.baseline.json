@@ -1,0 +1,37 @@
+[
+  {
+    "mutation": ">= → >",
+    "snippet": "const n = Number.isFinite(i) && i >= 0 ? i : 0;",
+    "reason": "EQUIVALENT: >= and > differ only at i===0, where both yield n=0 (0 via the true branch, 0 via the fallback). Identical placement."
+  },
+  {
+    "mutation": ">= → >",
+    "snippet": "return { total: arr.length, core, sink, ratio, proportioned: sink >= core / KAPPA };",
+    "reason": "EQUIVALENT: sink and core are integers and core/KAPPA = core·φ is irrational for core≥1, so an integer sink can never equal it exactly — the >= boundary is unreachable, >= and > agree on every real input."
+  },
+  {
+    "mutation": ">= → >",
+    "snippet": "spiraling: spiralRate >= KAPPA,        // most frontier folds runnable → spiraling",
+    "reason": "EQUIVALENT: spiralRate is rational (spiralFolds/frontier) and KAPPA=1/φ is irrational, so spiralRate never equals KAPPA exactly — the >= boundary is unreachable."
+  },
+  {
+    "mutation": "<= → <",
+    "snippet": "if (!Number.isInteger(n) || n <= 0) return [];",
+    "reason": "EQUIVALENT: <= and < differ only at n===0, where both return [] — the < path proceeds to a for-loop that runs zero times (k<0), also returning []."
+  },
+  {
+    "mutation": "< → <=",
+    "snippet": "while (seen.has(idx) && guard < n) { idx = (idx + 1) % n; guard++; }",
+    "reason": "EQUIVALENT: guard is a safety cap. An unseen slot is always found within a few nudges (there are n slots, at most n-1 seen), so guard never approaches n — the < vs <= cap boundary is never exercised."
+  },
+  {
+    "mutation": "&& → ||",
+    "snippet": "while (seen.has(idx) && guard < n) { idx = (idx + 1) % n; guard++; }",
+    "reason": "EQUIVALENT: with ||, the loop runs exactly n times on entry (guard 0..n-1), advancing idx by n → back to the SAME index mod n; the seen-check then resumes exactly as the original, so the pushed slot is identical every iteration — only wasted spins differ, not the order (verified: goldenOrder(10) is byte-identical)."
+  },
+  {
+    "mutation": "< → <=",
+    "snippet": "const alive = n === 0 ? false : (n < 8 ? true : classify(order).class === CLASS.ATTRACTOR)",
+    "reason": "EQUIVALENT at the boundary: n<8 is a trivial-alive shortcut for tiny walks; at n===8 the golden order already classifies ATTRACTOR, so the shortcut path (true) and the classify path (true) agree — n<8 vs n<=8 does not change the verdict."
+  }
+]

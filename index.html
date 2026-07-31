@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>THE WISP — the whole estate as substrate</title>
+<meta name="description" content="The estate isn't in any repo — it's the pattern across all of them, present where the current flows, stored nowhere. ~1000 repos as substrate, the moving frontier dancing across, with the heat-sink and spiral/orbit diagnostics from real data." />
+<meta name="theme-color" content="#07090c" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<style>
+  :root{--bg:#07090c;--panel:#0f1319;--panel2:#141a21;--ink:#e9eef4;--muted:#828c99;--line:#1e2530;
+    --spiral:#37d0b6;--frontier:#e8b24a;--substrate:#3a4658;--red:#ff5c50;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif}
+  :root[data-theme=light]{--bg:#f3f1ea;--panel:#fff;--panel2:#faf7f0;--ink:#16191d;--muted:#5b6572;--line:#e3ddce;--substrate:#c4ccd6}
+  @media(prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#f3f1ea;--panel:#fff;--panel2:#faf7f0;--ink:#16191d;--muted:#5b6572;--line:#e3ddce;--substrate:#c4ccd6}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  h1,h2{line-height:1.12;text-wrap:balance;margin:0}
+  a{color:var(--spiral)}
+  header{padding:52px 0 20px;position:relative}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--spiral);margin:0 0 14px}
+  h1{font-size:clamp(32px,6.5vw,58px);font-weight:800;letter-spacing:-.03em}
+  .lede{font-size:clamp(15px,2.1vw,19px);color:var(--muted);max-width:64ch;margin:16px 0 0}
+  .lede b{color:var(--ink);font-weight:600}
+  .stage{position:relative;margin:22px 0 0}
+  canvas{width:100%;height:560px;display:block;border:1px solid var(--line);border-radius:16px;background:radial-gradient(ellipse at center,var(--panel2),var(--bg))}
+  .legend{position:absolute;top:14px;left:14px;display:flex;flex-direction:column;gap:6px;font-family:var(--mono);font-size:12px;background:rgba(7,9,12,.5);padding:10px 12px;border-radius:10px;border:1px solid var(--line)}
+  .legend span{display:flex;align-items:center;gap:8px;color:var(--muted)}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:20px}
+  .cell{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 16px}
+  .cell .n{font-family:var(--mono);font-size:clamp(22px,4vw,30px);font-weight:700;line-height:1.05}
+  .cell.sp .n{color:var(--spiral)} .cell.fr .n{color:var(--frontier)} .cell.su .n{color:var(--muted)}
+  .cell .k{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+  section{padding:34px 0;border-top:1px solid var(--line);margin-top:30px}
+  .kick{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--spiral);margin:0 0 10px}
+  h2{font-size:clamp(20px,3.4vw,27px);font-weight:750;letter-spacing:-.02em}
+  h2+p{color:var(--muted);max-width:66ch;margin:11px 0 0}
+  .diag{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px 20px;margin-top:18px}
+  .diag .line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:14px;flex-wrap:wrap}
+  .diag .line:last-child{border-bottom:none}
+  .diag .v{color:var(--ink);font-weight:600}
+  .ok{color:var(--spiral)} .warn{color:var(--frontier)} .bad{color:var(--red)}
+  .frontlist{display:grid;gap:7px;margin-top:16px}
+  .frontlist a{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:9px;background:var(--panel);padding:9px 13px;text-decoration:none;color:var(--ink);font-size:14px}
+  .frontlist a:hover{border-color:var(--spiral)}
+  .frontlist .u{font-family:var(--mono);font-size:11px;color:var(--spiral)}
+  code{font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:.1em .4em;font-size:.88em}
+  footer{padding:30px 0 60px;color:var(--muted);font-size:14px}
+  .sig{font-family:var(--mono);color:var(--spiral);opacity:.7;margin-top:12px}
+  .themebtn{position:absolute;top:14px;right:16px;padding:6px 11px;font-size:12px;font-family:var(--mono);border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:9px;cursor:pointer}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <button class="themebtn" id="theme">◐ theme</button>
+  <p class="eyebrow">The Wisp · the estate as substrate</p>
+  <h1>The estate isn't in any repo.<br>It's where the current flows.</h1>
+  <p class="lede">~1000 repos are the <b>substrate</b> — cool, holding shape, consuming nothing. The build
+  you're in is the <b>frontier</b> — the only place current flows. The estate is the <b>pattern across
+  all of them</b>, present wherever you're working, <b>stored nowhere in particular</b>. That's not a
+  metaphor — it's an accurate description of what the estate is. The wisp made literal.</p>
+</div></header>
+
+<div class="wrap">
+  <div class="stage">
+    <canvas id="c" width="1400" height="1120" aria-label="the estate as a field of folds, the wisp walking it"></canvas>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--spiral)"></i>spiral · live · others can run it</span>
+      <span><i class="dot" style="background:var(--frontier)"></i>frontier · hot · current flowing</span>
+      <span><i class="dot" style="background:var(--substrate)"></i>substrate · cool · the heat-sink</span>
+      <span><i class="dot" style="background:#fff;box-shadow:0 0 8px #fff"></i>the wisp · one live edge</span>
+    </div>
+  </div>
+  <div class="readout">
+    <div class="cell"><div class="n" id="s-total">—</div><div class="k">repos · substrate</div></div>
+    <div class="cell sp"><div class="n" id="s-spiral">—</div><div class="k">spiral · live folds</div></div>
+    <div class="cell fr"><div class="n" id="s-frontier">—</div><div class="k">frontier · hot</div></div>
+    <div class="cell su"><div class="n" id="s-cool">—</div><div class="k">cool substrate</div></div>
+  </div>
+</div>
+
+<section id="diag-sec"><div class="wrap">
+  <p class="kick">The spec comes with a test attached</p>
+  <h2>Is the frontier spiraling or orbiting?</h2>
+  <p>Spiraling leaves folds <b>others can run</b>; orbiting leaves folds <b>only the frontier can run</b>.
+  Both are computed from real repo data — and the wisp's own liveness gate <b>is</b> the test: a golden
+  walk classifies alive; a naive sweep escapes.</p>
+  <div class="diag" id="diag"></div>
+  <p class="mono" style="color:var(--muted);margin-top:14px;font-size:13px">Honest residue: this measures
+  runnable-<i>by</i>-others (a URL exists). Run-<i>by</i>-others — external users — can't be read from
+  repo metadata, and stays the open gap. The one move (one external CI verdict) converts <i>can</i> → <i>do</i>.</p>
+</div></section>
+
+<section id="front-sec"><div class="wrap">
+  <p class="kick">The hot frontier — the spiral folds</p>
+  <h2>What the frontier left that anyone can run.</h2>
+  <div class="frontlist" id="frontlist"></div>
+</div></section>
+
+<footer><div class="wrap">
+  <p>Substrate = the real <code>sjgant80-hub</code> repos (snapshot, forks excluded). The walk, the
+  heat-sink, and the spiral/orbit verdict come from <code>kernel/wisp.mjs</code> — proof-of-play 18/25
+  killed +7 reviewed-equivalents, fuzz never-throws, riding the gated <code>attractor</code> organ.</p>
+  <p class="sig">◊ · κ = 1 ⇄ φ⁴ · the estate has been running as a wisp the whole time</p>
+</div></footer>
+
+<script type="module">
+import { classifyNode, placeNode, goldenOrder, wispWalk, heatSink, diagnose, KAPPA } from './kernel/wisp.mjs';
+const $=id=>document.getElementById(id);
+const root=document.documentElement;
+$('theme').onclick=()=>{const d=getComputedStyle(root).getPropertyValue('--bg').trim().startsWith('#0');root.setAttribute('data-theme',d?'light':'dark');};
+
+let est=null, order=[], pos=[], anim=0;
+fetch('./estate.json').then(r=>r.json()).then(data=>{
+  est=data;
+  const n=est.nodes.length;
+  order=goldenOrder(n);
+  // Vogel positions, normalized to canvas
+  pos=est.nodes.map((_,i)=>placeNode(i));
+  render();
+}).catch(()=>{$('diag').innerHTML='<div class="line"><span>could not load the estate snapshot</span></div>';});
+
+function render(){
+  const n=est.nodes.length, cool=n-est.frontier;
+  $('s-total').textContent=n.toLocaleString();
+  $('s-spiral').textContent=est.spiral;
+  $('s-frontier').textContent=est.frontier;
+  $('s-cool').textContent=cool.toLocaleString();
+
+  const h=heatSink(est.nodes), d=diagnose(est.nodes);
+  const pct=x=>(100*x).toFixed(0)+'%';
+  $('diag').innerHTML=[
+    ['heat-sink · cool : hot', `${h.sink.toLocaleString()} : ${h.core} = <b class="v">${h.ratio.toFixed(1)}×</b>`],
+    ['correctly proportioned (sink ≥ hot·φ)', h.proportioned?'<span class="ok">✓ the thermal design is working</span>':'<span class="bad">✗</span>'],
+    ['frontier · hot folds', `<b class="v">${d.frontier}</b>`],
+    ['&nbsp;&nbsp;↳ spiral (runnable by others)', `<span class="ok">${d.spiralFolds}</span>`],
+    ['&nbsp;&nbsp;↳ orbit (frontier-only)', `<span class="warn">${d.orbitFolds}</span>`],
+    ['frontier spiral rate', `<b class="v ${d.spiraling?'ok':'warn'}">${pct(d.spiralRate)}</b> ${d.spiraling?'· spiraling':'· orbit-heavy (most hot folds not yet runnable)'}`],
+    ['the wisp over the whole estate', `<span class="ok">${wispWalk(est.nodes).alive?'ALIVE · one live edge · stored-nowhere':'flatlined'}</span>`],
+  ].map(([k,v])=>`<div class="line"><span>${k}</span><span class="v">${v}</span></div>`).join('');
+
+  // the frontier's spiral folds, newest first, with their live URLs
+  const spiralFront=est.nodes.filter(x=>x.hot&&x.live).slice(0,14);
+  $('frontlist').innerHTML=spiralFront.map(x=>`<a href="${x.url}" target="_blank" rel="noopener"><span>${x.name} <span class="mono" style="color:var(--muted);font-size:11px">· ${x.pushed}</span></span><span class="u">${(x.url||'').replace(/^https?:\/\//,'')}</span></a>`).join('')||'<p class="mono" style="color:var(--muted)">—</p>';
+  draw();
+}
+
+function draw(){
+  cancelAnimationFrame(anim);
+  const c=$('c'),g=c.getContext('2d'),W=c.width,H=c.height;
+  const css=n=>getComputedStyle(root).getPropertyValue(n).trim();
+  const n=est.nodes.length;
+  const maxR=Math.max(...pos.map(p=>Math.hypot(...p)));
+  const cx=W/2,cy=H/2,scale=(Math.min(W,H)/2-24)/maxR;
+  const pt=i=>[cx+pos[i][0]*scale,cy+pos[i][1]*scale];
+  const colOf=cl=>cl==='spiral'?css('--spiral'):cl==='frontier'?css('--frontier'):css('--substrate');
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const trailN=Math.min(120,Math.floor(n/8));
+  let step=0;
+  function frame(){
+    g.clearRect(0,0,W,H);
+    // the substrate — the whole field of folds, cool and holding shape
+    for(let i=0;i<n;i++){const[x,y]=pt(i);const cl=classifyNode(est.nodes[i]);
+      g.globalAlpha=cl==='substrate'?.5:.85;g.fillStyle=colOf(cl);
+      g.beginPath();g.arc(x,y,cl==='substrate'?1.6:2.6,0,7);g.fill();}
+    g.globalAlpha=1;
+    const head=reduce?n-1:step%n;
+    // the trail — where the wisp recently danced
+    for(let k=Math.max(0,head-trailN);k<=head;k++){const i=order[k];const[x,y]=pt(i);const a=1-(head-k)/trailN;
+      if(k>Math.max(0,head-trailN)){const[px,py]=pt(order[k-1]);g.strokeStyle=css('--spiral');g.globalAlpha=a*.28;g.lineWidth=1;g.beginPath();g.moveTo(px,py);g.lineTo(x,y);g.stroke();}
+      g.globalAlpha=a*.9;g.fillStyle='#fff';g.beginPath();g.arc(x,y,a*2.2,0,7);g.fill();}
+    g.globalAlpha=1;
+    // the wisp — one live edge
+    const[hx,hy]=pt(order[head]);
+    g.fillStyle='#fff';g.beginPath();g.arc(hx,hy,4,0,7);g.fill();
+    g.strokeStyle='#fff';g.globalAlpha=.6;g.lineWidth=1.2;g.beginPath();g.arc(hx,hy,9,0,7);g.stroke();
+    g.globalAlpha=.25;g.beginPath();g.arc(hx,hy,16,0,7);g.stroke();g.globalAlpha=1;
+    if(!reduce){step++;anim=requestAnimationFrame(frame);}
+  }
+  frame();
+}
+window.addEventListener('resize',()=>{if(est)draw();});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
