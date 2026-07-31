@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import classify, { CLASS } from '../kernel/attractor.mjs';
-import { KAPPA, classifyNode, placeNode, goldenOrder, wispWalk, heatSink, diagnose } from '../kernel/wisp.mjs';
+import { KAPPA, classifyNode, placeNode, goldenOrder, wispWalk, heatSink, diagnose, selfView, foldSeries, trend } from '../kernel/wisp.mjs';
 
 // a small synthetic estate: live (spiral), hot (frontier), cool (substrate)
 const EST = [
@@ -71,6 +71,57 @@ test('diagnose the frontier: spiral vs orbit folds, and the honest residue', () 
   const allLive = diagnose([{ live: true, hot: true }, { live: true, hot: true }]);
   assert.equal(allLive.spiraling, true);
   assert.equal(diagnose(null).frontier, 0);                          // total
+});
+
+// ── the recurse fold: ⊕(−1, −2) over the estate's self-views ──
+test('selfView captures one snapshot of the estate', () => {
+  const v = selfView(EST, '2026-07-31');
+  assert.equal(v.date, '2026-07-31');
+  assert.equal(v.total, 20);
+  assert.equal(v.frontier, 3);                                       // hot: a, c, d
+  assert.equal(v.spiral, 1);                                         // hot AND live: a
+  assert.ok(Math.abs(v.spiralRate - 1 / 3) < 1e-4);
+  assert.equal(selfView(null, 5).date, '5');                         // total + coerces date
+});
+
+test('foldSeries appends one mark per pass (deduped by date), bounded', () => {
+  let s = foldSeries([], { date: 'd1', spiralRate: 0.1 });
+  s = foldSeries(s, { date: 'd2', spiralRate: 0.2 });
+  s = foldSeries(s, { date: 'd2', spiralRate: 0.25 });              // same date → replaces, not appended
+  assert.equal(s.length, 2);
+  assert.equal(s[1].spiralRate, 0.25);                              // the later mark for d2 wins
+  // bounded by cap
+  let big = [];
+  for (let i = 0; i < 20; i++) big = foldSeries(big, { date: 'd' + i, spiralRate: i / 100 }, 5);
+  assert.equal(big.length, 5);
+  assert.equal(foldSeries('nope', { date: 'x', spiralRate: 0.5 }).length, 1); // total
+  assert.equal(foldSeries([{ date: 'a', spiralRate: 0.1 }], 'nope').length, 1); // bad view not pushed
+});
+
+test('trend: the ⊕(−1,−2) verdict — above the fold of the last two = spiraling', () => {
+  assert.equal(trend([]).verdict, 'nascent');                       // no marks
+  assert.equal(trend([{ spiralRate: 0.2 }]).verdict, 'nascent');    // one mark
+  // rising above the fold of the previous two → spiraling
+  assert.equal(trend([{ spiralRate: 0.1 }, { spiralRate: 0.2 }, { spiralRate: 0.5 }]).verdict, 'spiraling');
+  // falling below → orbiting
+  assert.equal(trend([{ spiralRate: 0.5 }, { spiralRate: 0.4 }, { spiralRate: 0.1 }]).verdict, 'orbiting');
+  // level → flat
+  assert.equal(trend([{ spiralRate: 0.3 }, { spiralRate: 0.3 }, { spiralRate: 0.3 }]).verdict, 'flat');
+  assert.equal(trend(null).verdict, 'nascent');                     // total
+});
+
+test('recurse fold boundaries: cap fallback, exact edges, the −1/−2 fold uses BOTH prior marks', () => {
+  // foldSeries cap: cap>2 kept exactly; cap<2 falls back to 12 (keeps all here)
+  assert.equal(foldSeries([{ date: 'a', spiralRate: 0.1 }, { date: 'b', spiralRate: 0.2 }], { date: 'c', spiralRate: 0.3 }, 2).length, 2); // cap 2 → slice(-2) (>= not >)
+  assert.equal(foldSeries([{ date: 'a', spiralRate: 0.1 }, { date: 'b', spiralRate: 0.2 }], { date: 'c', spiralRate: 0.3 }, 1).length, 3); // cap<2 → default 12 (&& not ||)
+  assert.equal(foldSeries([{ date: 'a' }], { date: 'y', spiralRate: 0.2 }).length, 1); // a rate-less prior mark is filtered out (&& not ||)
+  // trend: a 2-mark series IS enough to judge (< 2 nascent, not <= 2)
+  assert.equal(trend([{ spiralRate: 0.1 }, { spiralRate: 0.5 }]).verdict, 'spiraling');
+  // the fold uses BOTH the −1 and −2 marks: high −2, low −1 → the baseline is their mean, so a
+  // middling latest reads as ORBITING (if it only used −1 it would read spiraling)
+  assert.equal(trend([{ spiralRate: 1.0 }, { spiralRate: 0.0 }, { spiralRate: 0.3 }]).verdict, 'orbiting');
+  // a null mark in the series is filtered, not fatal
+  assert.equal(trend([null, { spiralRate: 0.1 }, { spiralRate: 0.5 }]).verdict, 'spiraling');
 });
 
 test('boundary kills: empty walk, no-frontier rate, negative place, exact order, golden angle', () => {

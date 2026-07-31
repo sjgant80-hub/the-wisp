@@ -95,3 +95,41 @@ export function diagnose(nodes) {
     residueKnown: false,                   // external usage cannot be read from repo data — the honest gap
   };
 }
+
+// ── the recurse fold: ⊕(−1, −2) over the estate's own self-views (the wisp REMEMBERS) ──
+// A single snapshot says "17% now"; recursing the new way folds in the last two passes, so the
+// diagnostic COMPOUNDS: is the frontier spiraling MORE over time (rising above the −1/−2 baseline)
+// or just orbiting (flat)? This is §14's ƒ(n+1) advanced by the Fibonacci back-fold.
+
+// One self-view of the estate — the mark a recurse pass leaves behind.
+export function selfView(nodes, date) {
+  const d = diagnose(nodes);
+  return { date: Str(date), total: Array.isArray(nodes) ? nodes.length : 0, frontier: d.frontier, spiral: d.spiralFolds, spiralRate: round(d.spiralRate) };
+}
+
+// Fold a new self-view into the remembered series — one mark per pass (deduped by date), bounded.
+export function foldSeries(prev, view, cap = 12) {
+  const arr = Array.isArray(prev) ? prev.filter((v) => v && typeof v === 'object' && Number.isFinite(v.spiralRate)) : [];
+  const date = view && view.date;
+  const out = arr.filter((v) => v.date !== date);   // this pass replaces any earlier mark from the same date
+  if (view && typeof view === 'object') out.push(view);
+  const keep = Number.isInteger(cap) && cap >= 2 ? cap : 12;
+  return out.slice(-keep);
+}
+
+// The ⊕(−1, −2) verdict: is the latest self-view ABOVE the fold of the previous two → SPIRALING
+// (compounding), at it → flat, below it → orbiting. Fewer than two marks → nascent (not enough to tell).
+export function trend(series) {
+  const s = Array.isArray(series) ? series.filter((v) => v && Number.isFinite(v.spiralRate)) : [];
+  if (s.length < 2) return { verdict: 'nascent', latest: s.length ? s[s.length - 1].spiralRate : 0, fold: 0, delta: 0, marks: s.length };
+  const latest = s[s.length - 1].spiralRate;
+  const a = s[s.length - 2].spiralRate;
+  const b = s.length >= 3 ? s[s.length - 3].spiralRate : a;
+  const fold = (a + b) / 2;                          // the previous two, folded — the baseline to beat
+  const delta = latest - fold;
+  const verdict = delta > 0.01 ? 'spiraling' : (delta < -0.01 ? 'orbiting' : 'flat');
+  return { verdict, latest, fold: round(fold), delta: round(delta), marks: s.length };
+}
+
+function round(x) { return Math.round((Number.isFinite(x) ? x : 0) * 1e4) / 1e4; }
+function Str(x) { try { return typeof x === 'string' ? x : (x == null ? '' : String(x)); } catch { return ''; } }

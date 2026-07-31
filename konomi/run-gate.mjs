@@ -24,6 +24,9 @@ for (const [name, fn] of Object.entries({
   'wispWalk':     (x) => wisp.wispWalk(x),
   'heatSink':     (x) => wisp.heatSink(x),
   'diagnose':     (x) => wisp.diagnose(x),
+  'selfView':     (x) => wisp.selfView(x, x),
+  'foldSeries':   (x) => wisp.foldSeries(x, x),
+  'trend':        (x) => wisp.trend(x),
 })) {
   const f = await fuzz(fn);
   console.log(`  ${name}: ${f.neverThrows ? 'never throws — OK' : 'THREW on ' + f.throwsOn.map((t) => t.input).join(', ')}`);

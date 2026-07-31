@@ -109,7 +109,7 @@
 </div></footer>
 
 <script type="module">
-import { classifyNode, placeNode, goldenOrder, wispWalk, heatSink, diagnose, KAPPA } from './kernel/wisp.mjs';
+import { classifyNode, placeNode, goldenOrder, wispWalk, heatSink, diagnose, selfView, foldSeries, trend, KAPPA } from './kernel/wisp.mjs';
 const $=id=>document.getElementById(id);
 const root=document.documentElement;
 $('theme').onclick=()=>{const d=getComputedStyle(root).getPropertyValue('--bg').trim().startsWith('#0');root.setAttribute('data-theme',d?'light':'dark');};
@@ -133,6 +133,12 @@ function render(){
 
   const h=heatSink(est.nodes), d=diagnose(est.nodes);
   const pct=x=>(100*x).toFixed(0)+'%';
+  // ⊕(−1,−2) recurse fold: this visit is a pass — remember the self-view, fold in the last two, read the trend
+  let series=[]; try{series=JSON.parse(localStorage.getItem('wisp-selfviews')||'[]');}catch{}
+  series=foldSeries(series, selfView(est.nodes, est.generated), 12);
+  try{localStorage.setItem('wisp-selfviews', JSON.stringify(series));}catch{}
+  const t=trend(series);
+  const tv={spiraling:'ok',orbiting:'bad',flat:'warn',nascent:'warn'}[t.verdict]||'warn';
   $('diag').innerHTML=[
     ['heat-sink · cool : hot', `${h.sink.toLocaleString()} : ${h.core} = <b class="v">${h.ratio.toFixed(1)}×</b>`],
     ['correctly proportioned (sink ≥ hot·φ)', h.proportioned?'<span class="ok">✓ the thermal design is working</span>':'<span class="bad">✗</span>'],
@@ -141,6 +147,8 @@ function render(){
     ['&nbsp;&nbsp;↳ orbit (frontier-only)', `<span class="warn">${d.orbitFolds}</span>`],
     ['frontier spiral rate', `<b class="v ${d.spiraling?'ok':'warn'}">${pct(d.spiralRate)}</b> ${d.spiraling?'· spiraling':'· orbit-heavy (most hot folds not yet runnable)'}`],
     ['the wisp over the whole estate', `<span class="ok">${wispWalk(est.nodes).alive?'ALIVE · one live edge · stored-nowhere':'flatlined'}</span>`],
+    ['recurse memory · passes remembered', `<b class="v">${t.marks}</b>`],
+    ['⊕(−1,−2) trend across passes', `<b class="v ${tv}">${t.verdict}</b> ${t.marks<2?'· revisit to fold the next pass in':`· latest ${pct(t.latest)} vs the fold of the last two ${pct(t.fold)}`}`],
   ].map(([k,v])=>`<div class="line"><span>${k}</span><span class="v">${v}</span></div>`).join('');
 
   // the frontier's spiral folds, newest first, with their live URLs

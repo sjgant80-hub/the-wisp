@@ -33,5 +33,15 @@
     "mutation": "< → <=",
     "snippet": "const alive = n === 0 ? false : (n < 8 ? true : classify(order).class === CLASS.ATTRACTOR)",
     "reason": "EQUIVALENT at the boundary: n<8 is a trivial-alive shortcut for tiny walks; at n===8 the golden order already classifies ATTRACTOR, so the shortcut path (true) and the classify path (true) agree — n<8 vs n<=8 does not change the verdict."
+  },
+  {
+    "mutation": "> → >=",
+    "snippet": "const verdict = delta > 0.01 ? 'spiraling' : (delta < -0.01 ? 'orbiting' : 'flat');",
+    "reason": "EQUIVALENT: > and >= differ only at delta === 0.01 exactly; delta = latest − fold is a float difference of observed rates and never lands on 0.01 exactly (measure-zero). The 0.01 is a chosen dead-band, not a boundary anything sits on."
+  },
+  {
+    "mutation": "< → <=",
+    "snippet": "const verdict = delta > 0.01 ? 'spiraling' : (delta < -0.01 ? 'orbiting' : 'flat');",
+    "reason": "EQUIVALENT: < and <= differ only at delta === -0.01 exactly, which the float difference never hits (measure-zero). Same dead-band tolerance as the > 0.01 side."
   }
 ]
